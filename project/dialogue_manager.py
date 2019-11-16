@@ -93,18 +93,13 @@ class DialogueManager(object):
         # Goal-oriented part:
         else:        
             # Pass features to tag_classifier to get predictions.
-            tag = tag_classifier.predict(features) #### YOUR CODE HERE ####
+            tag = tag_classifier.predict(features)[0] #### YOUR CODE HERE ####
             
             # Pass prepared_question to thread_ranker to get predictions.
 
-            embeddings, dim=load_embeddings(RESOURCE_PATH['WORD_EMBEDDINGS'])
-            qvec=question_to_vec(prepared_question, embeddings, dim)
-
             if len(tag)> 0:
-              tag_post_ids, thread_embedding=unpickle_file(RESOURCE_PATH['THREAD_EMBEDDINGS_FOLDER']+"/"+tag[0]+".pkl")
-              similarity=cosine_similarity([qvec],thread_embedding )              
-              thread_id = tag_post_ids[np.argmax(similarity)]
+              thread_id=self.thread_ranker.get_best_thread(prepared_question,tag)
             else:
               thread_id = -1
 
-            return self.ANSWER_TEMPLATE % (tag[0], thread_id)
+            return self.ANSWER_TEMPLATE % (tag, thread_id)
