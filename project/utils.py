@@ -41,20 +41,18 @@ def load_embeddings(embeddings_path):
       embeddings - dict mapping words to vectors;
       embeddings_dim - dimension of the vectors.
     """
-
+    
     # Hint: you have already implemented a similar routine in the 3rd assignment.
     # Note that here you also need to know the dimension of the loaded embeddings.
     # When you load the embeddings, use numpy.float32 type as dtype
 
-    ########################
-    #### YOUR CODE HERE ####
-    ########################
+    embeddings=dict()
+    for line in open(embeddings_path):
+  
+      
+      embeddings[line.split()[0]]=np.array(line.split()[1:]).astype("float32")
 
-    # remove this when you're done
-    raise NotImplementedError(
-        "Open utils.py and fill with your code. In case of Google Colab, download"
-        "(https://github.com/hse-aml/natural-language-processing/blob/master/project/utils.py), "
-        "edit locally and upload using '> arrow on the left edge' -> Files -> UPLOAD")
+    return embeddings, list(embeddings.values())[0].shape[0]
 
 
 def question_to_vec(question, embeddings, dim):
@@ -66,13 +64,23 @@ def question_to_vec(question, embeddings, dim):
     #### YOUR CODE HERE ####
     ########################
 
-    # remove this when you're done
-    raise NotImplementedError(
-        "Open utils.py and fill with your code. In case of Google Colab, download"
-        "(https://github.com/hse-aml/natural-language-processing/blob/master/project/utils.py), "
-        "edit locally and upload using '> arrow on the left edge' -> Files -> UPLOAD")
+    returnvector=np.zeros(dim)
+    count=0
+    
+    if len(question)==0:
+      return returnvector
+    
+    for word in question.split():
+      if word in embeddings: 
+        returnvector=returnvector+embeddings[word]
+        count+=1
+        
+    if count>0:
+      returnvector=returnvector/count
+      
+    return returnvector
 
-
+   
 def unpickle_file(filename):
     """Returns the result of unpickling the file content."""
     with open(filename, 'rb') as f:
