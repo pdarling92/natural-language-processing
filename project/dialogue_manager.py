@@ -1,8 +1,11 @@
 import os
-from sklearn.metrics.pairwise import pairwise_distances_argmin
+from sklearn.metrics.pairwise import pairwise_distances_argmin, cosine_similarity
 
 from chatterbot import ChatBot
+from chatterbot.trainers import ChatterBotCorpusTrainer
+
 from utils import *
+
 
 
 class ThreadRanker(object):
@@ -22,12 +25,12 @@ class ThreadRanker(object):
         thread_ids, thread_embeddings = self.__load_embeddings_by_tag(tag_name)
 
         # HINT: you have already implemented a similar routine in the 3rd assignment.
-        
-        question_vec = #### YOUR CODE HERE ####
-        best_thread = #### YOUR CODE HERE ####
-        
-        return thread_ids[best_thread]
 
+        question_vec = qvec=question_to_vec(question, self.word_embeddings, self.embeddings_dim)
+        similarity=cosine_similarity([qvec],thread_embeddings )
+        best_thread = np.argmax(similarity)
+
+        return thread_ids[best_thread]
 
 class DialogueManager(object):
     def __init__(self, paths):
@@ -43,6 +46,8 @@ class DialogueManager(object):
         self.tag_classifier = unpickle_file(paths['TAG_CLASSIFIER'])
         self.thread_ranker = ThreadRanker(paths)
 
+#        self.chatbot=create_chitchat_bot()
+
     def create_chitchat_bot(self):
         """Initializes self.chitchat_bot with some conversational model."""
 
@@ -54,30 +59,52 @@ class DialogueManager(object):
         ########################
         #### YOUR CODE HERE ####
         ########################
-       
+        self.chatbot = ChatBot('Chatbotty McBotFace')
+
+        # Create a new trainer for the chatbot
+        trainer = ChatterBotCorpusTrainer(self.chatbot)
+
+        # Train the chatbot based on the english corpus
+        trainer.train("chatterbot.corpus.english")  
+
+        return(self.chatbot)
+
     def generate_answer(self, question):
         """Combines stackoverflow and chitchat parts using intent recognition."""
 
         # Recognize intent of the question using `intent_recognizer`.
         # Don't forget to prepare question and calculate features for the question.
         
-        prepared_question = #### YOUR CODE HERE ####
-        features = #### YOUR CODE HERE ####
-        intent = #### YOUR CODE HERE ####
+        prepared_question = text_prepare(question)#### YOUR CODE HERE ####
+
+        vectorizer = unpickle_file(RESOURCE_PATH['TFIDF_VECTORIZER'])
+        intent_recognizer = unpickle_file(RESOURCE_PATH['INTENT_RECOGNIZER'])
+        tag_classifier=unpickle_file(RESOURCE_PATH['TAG_CLASSIFIER'])
+
+        features = vectorizer.transform([prepared_question]) #### YOUR CODE HERE ####
+        intent = intent_recognizer.predict(features)
 
         # Chit-chat part:   
         if intent == 'dialogue':
             # Pass question to chitchat_bot to generate a response.       
-            response = #### YOUR CODE HERE ####
+            response = self.chatbot.get_response(question) #### YOUR CODE HERE ####
             return response
         
         # Goal-oriented part:
         else:        
             # Pass features to tag_classifier to get predictions.
-            tag = #### YOUR CODE HERE ####
+            tag = tag_classifier.predict(features) #### YOUR CODE HERE ####
             
             # Pass prepared_question to thread_ranker to get predictions.
-            thread_id = #### YOUR CODE HERE ####
-           
-            return self.ANSWER_TEMPLATE % (tag, thread_id)
 
+            embeddings, dim=load_embeddings(RESOURCE_PATH['WORD_EMBEDDINGS'])
+            qvec=question_to_vec(prepared_question, embeddings, dim)
+
+            if len(tag)> 0:
+              tag_post_ids, thread_embedding=unpickle_file(RESOURCE_PATH['THREAD_EMBEDDINGS_FOLDER']+"/"+tag[0]+".pkl")
+              similarity=cosine_similarity([qvec],thread_embedding )              
+              thread_id = tag_post_ids[np.argmax(similarity)]
+            else:
+              thread_id = -1
+
+            return self.ANSWER_TEMPLATE % (tag[0], thread_id)

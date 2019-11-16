@@ -8,11 +8,11 @@ from nltk.corpus import stopwords
 
 # Paths for all resources for the bot.
 RESOURCE_PATH = {
-    'INTENT_RECOGNIZER': 'intent_recognizer.pkl',
-    'TAG_CLASSIFIER': 'tag_classifier.pkl',
-    'TFIDF_VECTORIZER': 'tfidf_vectorizer.pkl',
-    'THREAD_EMBEDDINGS_FOLDER': 'thread_embeddings_by_tags',
-    'WORD_EMBEDDINGS': 'word_embeddings.tsv',
+    'INTENT_RECOGNIZER': '/home/chatbot/assets/nlp_assets/intent_recognizer.pkl',
+    'TAG_CLASSIFIER': '/home/chatbot/assets/nlp_assets/tag_classifier.pkl',
+    'TFIDF_VECTORIZER': '/home/chatbot/assets/nlp_assets/tfidf_vectorizer.pkl',
+    'THREAD_EMBEDDINGS_FOLDER': '/home/chatbot/assets/nlp_assets/thread_embeddings_by_tags',
+    'WORD_EMBEDDINGS': '/home/chatbot/assets/nlp_assets/word_embeddings.tsv',
 }
 
 
